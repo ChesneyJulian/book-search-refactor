@@ -22,9 +22,9 @@ const resolvers = {
   Mutation: {
 
     addUser: async (parent, args) => {
-      console.log(args.input);
+      console.log(args);
       // pass args.input because we are using input types
-      const user = await User.create(args.input);
+      const user = await User.create(args);
 
       if (!user) {
         throw AuthenticationError;
@@ -57,7 +57,7 @@ const resolvers = {
       try {
         const updatedUser = await User.findOneAndUpdate(
           { _id: context.user._id },
-          { $addToSet: { savedBooks: args.input } },
+          { $addToSet: { savedBooks: args } },
           { new: true, runValidators: true }
         )
         return updatedUser;
