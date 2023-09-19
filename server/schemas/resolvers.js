@@ -1,7 +1,7 @@
 // import user model
 const { User } = require('../models');
 // import sign token function from auth
-const { signToken } = require('../utils/auth');
+const { signToken, AuthenticationError } = require('../utils/auth');
 
 const resolvers = {
   Query: {
@@ -12,18 +12,19 @@ const resolvers = {
         or: { username: params.username }
       })
       if (!foundUser) {
-        return res.status(400).json({ message: 'Cannot find a user with this id!' });
+        throw AuthenticationError;
       }
       return res.json(foundUser);
     }
   },
+
   Mutation: {
 
     addUser: async ({ body }, res) => {
       const user = await User.create({ body });
 
       if (!user) {
-        return res.status(400).json({ message: 'Something is wrong!' });
+        throw AuthenticationError;
       }
       const token = signToken(user);
       return res.json({ token, user });
@@ -35,13 +36,13 @@ const resolvers = {
         or: { email: body.email }
       })
       if (!user) {
-        return res.status(400).json({ message: "Can't find this user" });
+        throw AuthenticationError;
       }
 
       const correctPw = await user.isCorrectPassword(body.password);
 
       if (!correctPw) {
-        return res.status(400).json({ message: 'Wrong password!' });
+        throw AuthenticationError;
       }
 
       const token = signToken(user);
@@ -70,7 +71,7 @@ const resolvers = {
         { new: true }
       );
       if(!updatedUser) {
-        return res.status(404).json({ message: "Couldn't find user with this id!" });
+        throw AuthenticationError;
       }
       return res.json(updatedUser);
     }
