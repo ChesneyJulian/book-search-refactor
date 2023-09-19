@@ -7,6 +7,7 @@ const resolvers = {
   Query: {
     // look into CONTEXT EXAMPLE 25 AND BEGINNING OF CLASS LAST NIGHT
     me: async (parent, args, context) => {
+      console.log(context.user);
       const foundUser = await User.findOne({
         _id: context.user ? context.user._id : args.id, 
         $or: { username: context.user ? context.user.username : args.username }
@@ -22,6 +23,7 @@ const resolvers = {
 
     addUser: async (parent, args) => {
       console.log(args.input);
+      // pass args.input because we are using input types
       const user = await User.create(args.input);
 
       if (!user) {
@@ -31,16 +33,16 @@ const resolvers = {
       return { token, user };
     },
 
-    loginUser: async (parent, { email, username, password }) => {
+    loginUser: async (parent, args) => {
+      console.log(args.email, args.username, args.password);
       const user = await User.findOne({ 
-        username: username,
-        or: { email: email }
+        $or: [{username: args.username}, {email: args.email}]
       })
       if (!user) {
         throw AuthenticationError;
       }
 
-      const correctPw = await user.isCorrectPassword(password);
+      const correctPw = await user.isCorrectPassword(args.password);
 
       if (!correctPw) {
         throw AuthenticationError;
@@ -50,12 +52,12 @@ const resolvers = {
       return { token, user };
     },
 
-    saveBook: async (parent, { body }, context) => {
+    saveBook: async (parent, args, context) => {
       console.log(context.user);
       try {
         const updatedUser = await User.findOneAndUpdate(
           { _id: context.user._id },
-          { $addToSet: { savedBooks: body } },
+          { $addToSet: { savedBooks: args.input } },
           { new: true, runValidators: true }
         )
         return updatedUser;
