@@ -14,20 +14,20 @@ const resolvers = {
       if (!foundUser) {
         throw AuthenticationError;
       }
-      return res.json(foundUser);
+      return foundUser;
     }
   },
 
   Mutation: {
 
     addUser: async ({ body }, res) => {
-      const user = await User.create({ body });
+      const user = await User.create(body);
 
       if (!user) {
         throw AuthenticationError;
       }
       const token = signToken(user);
-      return res.json({ token, user });
+      return { token, user };
     },
 
     loginUser: async ({ body }, res) => {
@@ -46,7 +46,7 @@ const resolvers = {
       }
 
       const token = signToken(user);
-      return res.json({ token, user });
+      return { token, user };
     },
 
     saveBook: async ({ user, body }, res) => {
@@ -57,10 +57,10 @@ const resolvers = {
           { $addToSet: { savedBooks: body } },
           { new: true, runValidators: true }
         )
-        return res.json(updatedUser);
+        return updatedUser;
       } catch (err) {
         console.log(err);
-        return res.status(400).json(err);
+        return err;
       }
     },
 
@@ -73,7 +73,7 @@ const resolvers = {
       if(!updatedUser) {
         throw AuthenticationError;
       }
-      return res.json(updatedUser);
+      return updatedUser;
     }
   }
 };
