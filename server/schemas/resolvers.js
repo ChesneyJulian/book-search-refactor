@@ -6,10 +6,10 @@ const { signToken, AuthenticationError } = require('../utils/auth');
 const resolvers = {
   Query: {
     // look into CONTEXT EXAMPLE 25 AND BEGINNING OF CLASS LAST NIGHT
-    me: async ( user = null, params) => {
+    me: async (parent, args, context) => {
       const foundUser = await User.findOne({
-        _id: user ? user._id : params.id, 
-        or: { username: params.username }
+        _id: context.user ? context.user._id : args.id, 
+        $or: { username: context.user ? context.user.username : args.username }
       })
       if (!foundUser) {
         throw AuthenticationError;
@@ -20,8 +20,9 @@ const resolvers = {
 
   Mutation: {
 
-    addUser: async ({ body }, res) => {
-      const user = await User.create(body);
+    addUser: async (parent, args) => {
+      console.log(args.input);
+      const user = await User.create(args.input);
 
       if (!user) {
         throw AuthenticationError;
@@ -30,16 +31,16 @@ const resolvers = {
       return { token, user };
     },
 
-    loginUser: async ({ body }, res) => {
+    loginUser: async (parent, { email, username, password }) => {
       const user = await User.findOne({ 
-        username: body.username,
-        or: { email: body.email }
+        username: username,
+        or: { email: email }
       })
       if (!user) {
         throw AuthenticationError;
       }
 
-      const correctPw = await user.isCorrectPassword(body.password);
+      const correctPw = await user.isCorrectPassword(password);
 
       if (!correctPw) {
         throw AuthenticationError;
@@ -49,11 +50,11 @@ const resolvers = {
       return { token, user };
     },
 
-    saveBook: async ({ user, body }, res) => {
-      console.log(user);
+    saveBook: async (parent, { body }, context) => {
+      console.log(context.user);
       try {
         const updatedUser = await User.findOneAndUpdate(
-          { _id: user._id },
+          { _id: context.user._id },
           { $addToSet: { savedBooks: body } },
           { new: true, runValidators: true }
         )
@@ -64,9 +65,9 @@ const resolvers = {
       }
     },
 
-    removeBook: async ({ user, params }, res) => {
+    removeBook: async (parent, { user, params }, context) => {
       const updatedUser = await User.findOneAndUpdate(
-        { _id: user._id }, 
+        { _id: context.user._id }, 
         { $pull: { savedBooks: { bookId: params.bookId } } },
         { new: true }
       );
