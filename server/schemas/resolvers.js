@@ -30,6 +30,7 @@ const resolvers = {
         throw AuthenticationError;
       }
       const token = signToken(user);
+      console.log(token);
       return { token, user };
     },
 
@@ -49,11 +50,13 @@ const resolvers = {
       }
 
       const token = signToken(user);
+      console.log(token);
       return { token, user };
     },
 
     saveBook: async (parent, args, context) => {
-      console.log(context.user);
+      console.log('ARGS ', args);
+      console.log(context.user._id);
       try {
         const updatedUser = await User.findOneAndUpdate(
           { _id: context.user._id },
