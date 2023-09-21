@@ -10,7 +10,6 @@ const resolvers = {
       console.log(context.user);
       const foundUser = await User.findOne({
         _id: context.user ? context.user._id : args.id, 
-        $or: { username: context.user ? context.user.username : args.username }
       })
       if (!foundUser) {
         throw AuthenticationError;
@@ -55,7 +54,7 @@ const resolvers = {
     },
 
     saveBook: async (parent, args, context) => {
-      console.log('ARGS ', args);
+      console.log('BOOK DATA ', args);
       console.log(context.user._id);
       try {
         const updatedUser = await User.findOneAndUpdate(
