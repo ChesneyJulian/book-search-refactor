@@ -1,9 +1,10 @@
 // see SignupForm.js for comments
 import { useState } from 'react';
+// import useMutation
 import { useMutation } from '@apollo/client';
 import { Form, Button, Alert } from 'react-bootstrap';
 
-// import { loginUser } from '../utils/API';
+// import LOGIN_USER mutation
 import { LOGIN_USER } from '../utils/mutations';
 import Auth from '../utils/auth';
 
@@ -30,16 +31,11 @@ const LoginForm = () => {
     }
 
     try {
+      // use destructured data from userFormData to pass to loginUser mutation 
       const { data } = await loginUser({
         variables: {...userFormData}
       });
-
-      // if (!response.ok) {
-      //   throw new Error('something went wrong!');
-      // }
-
-      // const { token, user } = await response.json();
-      console.log(data);
+      // run login function in auth.js to make token accessible
       Auth.login(data.loginUser.token);
     } catch (err) {
       console.error(err);

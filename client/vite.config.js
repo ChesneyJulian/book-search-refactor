@@ -8,6 +8,7 @@ export default defineConfig({
     port: 3000,
     open: true,
     proxy: {
+      // change proxy to /graphql to use graphql and apollo server
       '/graphql': {
         target: 'http://localhost:3001',
         secure: false,

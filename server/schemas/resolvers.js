@@ -5,58 +5,70 @@ const { signToken, AuthenticationError } = require('../utils/auth');
 
 const resolvers = {
   Query: {
-    // look into CONTEXT EXAMPLE 25 AND BEGINNING OF CLASS LAST NIGHT
+    // query to find user's own profile using context provided from token and return data
     me: async (parent, args, context) => {
-      console.log(context.user);
-      const foundUser = await User.findOne({
-        _id: context.user ? context.user._id : args.id, 
-      })
-      if (!foundUser) {
-        throw AuthenticationError;
+      try {
+        const foundUser = await User.findOne({
+          _id: context.user ? context.user._id : args.id, 
+        })
+        if (!foundUser) {
+          throw AuthenticationError;
+        }
+        return foundUser;
+      } catch (err) {
+        console.error(err);
       }
-      return foundUser;
+
     }
   },
 
   Mutation: {
-
+    // mutation to add a user to the database and return the token and user
     addUser: async (parent, args) => {
-      console.log(args);
-      // pass args.input because we are using input types
-      const user = await User.create(args);
-
-      if (!user) {
-        throw AuthenticationError;
+      try {      
+        // pass args from signup form to create a new User
+        const user = await User.create(args);
+        // check that user creation was successful
+        if (!user) {
+          throw AuthenticationError;
+        }
+        // sign JWT so user passes Auth when they create an account
+        const token = signToken(user);
+  
+        return { token, user };
+      } catch (err) {
+        console.error(err);
       }
-      const token = signToken(user);
-      console.log(token);
-      return { token, user };
     },
-
+    // mutation to login a user to their account and return token and user
     loginUser: async (parent, args) => {
-      console.log(args.email, args.username, args.password);
-      const user = await User.findOne({ 
-        $or: [{username: args.username}, {email: args.email}]
-      })
-      if (!user) {
-        throw AuthenticationError;
-      }
-
-      const correctPw = await user.isCorrectPassword(args.password);
-
-      if (!correctPw) {
-        throw AuthenticationError;
-      }
-
-      const token = signToken(user);
-      console.log(token);
-      return { token, user };
-    },
-
-    saveBook: async (parent, args, context) => {
-      console.log('BOOK DATA ', args);
-      console.log(context.user._id);
       try {
+          // pass args from login form to find a single User
+        const user = await User.findOne({ 
+          $or: [{username: args.username}, {email: args.email}]
+        })
+        // check that a user is found with the username or email given
+        if (!user) {
+          throw AuthenticationError;
+        }
+        // check user's entered password with the bcrypt hash password
+        const correctPw = await user.isCorrectPassword(args.password);
+        // throw error if incorrect password
+        if (!correctPw) {
+          throw AuthenticationError;
+        }
+        // sign token with user found from login
+        const token = signToken(user);
+  
+        return { token, user };
+      } catch (err) {
+        console.error(err);
+      }
+    },
+    // mutation to save a book to a user's account and return the updated user's account
+    saveBook: async (parent, args, context) => {
+      try {
+        // find and update user using context and add saved book to savedBooks
         const updatedUser = await User.findOneAndUpdate(
           { _id: context.user._id },
           { $addToSet: { savedBooks: args } },
@@ -68,18 +80,22 @@ const resolvers = {
         return err;
       }
     },
-
+    // mutation to remove book from user's savedBooks and return the updated user's account
     removeBook: async (parent, args, context) => {
-      console.log("ARGS ", args);
-      const updatedUser = await User.findOneAndUpdate(
-        { _id: context.user._id }, 
-        { $pull: { savedBooks: { bookId: args.bookId } } },
-        { new: true }
-      );
-      if(!updatedUser) {
-        throw AuthenticationError;
+      try {
+        // find and update user using context and pull the deleted book from savedBooks
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: context.user._id }, 
+          { $pull: { savedBooks: { bookId: args.bookId } } },
+          { new: true }
+        );
+        if(!updatedUser) {
+          throw AuthenticationError;
+        }
+        return updatedUser;
+      } catch (err) {
+        console.error(err);
       }
-      return updatedUser;
     }
   }
 };

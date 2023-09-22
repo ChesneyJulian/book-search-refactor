@@ -1,5 +1,5 @@
 const gql = require('graphql-tag');
-
+// define types and fields for User, Book, Auth, Query, and Mutation
 const typeDefs = gql`
   type User {
     _id: ID

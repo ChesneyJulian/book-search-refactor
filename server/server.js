@@ -1,16 +1,19 @@
 const express = require('express');
 const path = require('path');
+// import ApolloServer
 const { ApolloServer } = require('@apollo/server');
+// import expressMiddleware 
 const { expressMiddleware } = require('@apollo/server/express4');
-
+// import typeDefs and resolvers from ./schemas
 const { typeDefs, resolvers } = require('./schemas');
 const db = require('./config/connection');
-const routes = require('./routes');
+
+// import authMiddleware
 const { authMiddleware } = require('./utils/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-
+// initialize server as instance of ApolloServer including typeDefs, resolvers, and formatError 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
@@ -18,7 +21,7 @@ const server = new ApolloServer({
     return error;
   }
 });
-
+// function to start ApolloServer, implement middleware, and listen for client side requests as well as provide instance to graphQL
 const startApolloServer = async () => {
   await server.start();
   

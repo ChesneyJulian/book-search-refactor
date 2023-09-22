@@ -1,4 +1,5 @@
 /* eslint-disable react/jsx-key */
+// import useMutation along with useQuery from apollo/client
 import { useQuery, useMutation } from '@apollo/client';
 
 import {
@@ -9,19 +10,19 @@ import {
   Col
 } from 'react-bootstrap';
 
-// import { getMe, deleteBook } from '../utils/API';
 import { QUERY_ME } from '../utils/queries';
+// import REMOVE_BOOK mutation
 import { REMOVE_BOOK } from '../utils/mutations';
 import Auth from '../utils/auth';
 import { removeBookId } from '../utils/localStorage';
 
 const SavedBooks = () => {
-
+  // destructure loading and data from useQuery(QUERY_ME)
   const { loading, data } = useQuery(QUERY_ME);
   const userData = data?.me || {};
   console.log(userData);
-
-  const [removeBook, { error }] = useMutation(REMOVE_BOOK, {
+  // initialize removeBook from REMOVE_BOOK mutation, use option of refetchQueries to run QUERY_ME upon completion so that user's updated info is shown
+  const [removeBook] = useMutation(REMOVE_BOOK, {
     refetchQueries: [
       QUERY_ME,
       'me'
@@ -39,10 +40,14 @@ const SavedBooks = () => {
     }
 
     try {
+      // pass bookId to removeBook mutation
       const { data } = await removeBook({
         variables: { bookId },
       });
-      console.log(data);
+
+      if (!data) {
+        console.log('Something went wrong');
+      }
       // upon success, remove book's id from localStorage
       removeBookId(bookId);
     } catch (err) {

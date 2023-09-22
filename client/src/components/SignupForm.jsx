@@ -32,13 +32,11 @@ const SignupForm = () => {
     }
 
     try {
-      console.log('ADDING USER', {...userFormData});
-      // const response = await createUser(userFormData);
+      // pass destructured data from userFormData to addUser mutation 
       const { data } = await addUser({
         variables: { ...userFormData },
       });
-      
-      console.log(data);
+      // run login function from auth.js to make token accessible
       Auth.login(data.addUser.token);
 
     } catch (err) {
